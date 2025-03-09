@@ -15,7 +15,7 @@ const Stats = () => {
     const messageApi = useMessage()
 
     // Get initial values from URL params or set defaults
-    const initialRoofArea = Number(searchParams.get('areaSqFt')) || 64
+    const initialRoofArea = Number(searchParams.get('areaSqFt')) || 650
     const initialYear = Number(searchParams.get('year')) || new Date().getFullYear()
     const initialLat = searchParams.get('lat') || null
     const initialLon = searchParams.get('lon') || null
