@@ -35,11 +35,9 @@ const options = {
 
 export function WaterSavings({monthlyWaterCollected}) {
     if (!monthlyWaterCollected) {
-        return <Result status="404" title="No Data Found"
-                       subTitle="No water savings data found for the selected location."/>
+        return <Result status="404" title="No Data Found" subTitle="No data found for the selected location."/>
     }
 
-    console.log('monthlyWaterCollected', monthlyWaterCollected)
     // Extract months and values from the monthlyWaterCollected object
     const labels = Object.keys(monthlyWaterCollected).map(month => {
         // Format the key as a full month name (e.g., "January", "February")

@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react'
-import {Card, Skeleton} from 'antd'
+import {Alert, Card, Skeleton} from 'antd'
 import {useSearchParams} from 'react-router-dom'
 import {WaterSavings} from '@/pages/Home/WaterSavings.jsx'
 import SavingsService from '@/services/SavingsService.jsx'
@@ -15,7 +15,7 @@ const Stats = () => {
     const messageApi = useMessage()
 
     // Get initial values from URL params or set defaults
-    const initialRoofArea = Number(searchParams.get('areaSqFt')) || 50
+    const initialRoofArea = Number(searchParams.get('areaSqFt')) || 64
     const initialYear = Number(searchParams.get('year')) || new Date().getFullYear()
     const initialLat = searchParams.get('lat') || null
     const initialLon = searchParams.get('lon') || null
@@ -31,13 +31,24 @@ const Stats = () => {
     const [loadingSavings, setLoadingSavings] = useState(false)
     const [loadingLocation, setLoadingLocation] = useState(false)
     const [searchTimeout, setSearchTimeout] = useState(null) // To hold the timeout id
-    const [areaSqFtTimeout, setAreaSqFtTimeout] = useState(null) // To hold the timeout id
 
-    const {monthlyWaterCollected, totalWaterCollected, moneySaved} = savingsData
+    const {
+        monthlyWaterCollected,
+        totalWaterCollected,
+        moneySaved,
+        waterCostPer1000LitrePounds,
+        waterCollectedFormula
+    } = savingsData
 
     // Compute the start and end dates for the selected year
     const startDate = `${year}-01-01`
-    const endDate = new Date().toISOString().split('T')[0] // Format as YYYY-MM-DD
+    const currentYear = new Date().getFullYear()
+    let endDate
+    if (year === currentYear) {
+        endDate = new Date().toISOString().split('T')[0] // Today's date if it's the current year
+    } else {
+        endDate = `${year}-12-31` // End of the selected year (December 31st)
+    }
 
     // Fetch savings data
     const fetchWaterSavingsData = (latitude, longitude) => {
@@ -77,7 +88,7 @@ const Stats = () => {
                     (position) => {
                         const {latitude, longitude} = position.coords
 
-                        LocationService.reverseLocationSearch({lat: latitude, lon: longitude})
+                        LocationService.reverseLocationSearch({lat: latitude, lon: longitude, format: 'json'})
                             .then((data) => {
                                 const detectedLocation =
                                     data.address?.city || data.address?.town || data.address?.village || 'Unknown Location'
@@ -144,17 +155,45 @@ const Stats = () => {
 
     return (
         <div className="space-y-4">
+            <div>
+                <Alert
+                    message={<div className="font-semibold">Rainwater Harvesting</div>}
+                    description="Enter the area of your roof, the year, and the location to calculate the potential rainwater harvest."
+                    type="success"
+                />
+            </div>
             <div className="grid grid-cols-2 gap-4">
                 <Card>
                     <Skeleton loading={loadingSavings} active>
-                        <Meta title={`£${moneySaved || 0}`} description="Potential Money Saved"/>
+                        <Meta
+                            title={`£${moneySaved || 0}`}
+                            description={
+                                <div>
+                                    <div>
+                                        Potential Money Saved £{waterCostPer1000LitrePounds}/1000L
+                                    </div>
+                                    <div>
+                                        {`£${waterCostPer1000LitrePounds}/1000L`}
+                                    </div>
+                                </div>
+                            }
+                        />
                     </Skeleton>
                 </Card>
                 <Card>
                     <Skeleton loading={loadingSavings} active>
                         <Meta
                             title={`${totalWaterCollected || 0} Liters`}
-                            description="Potential Water Collected"
+                            description={
+                                <div>
+                                    <div>
+                                        Potential Water Collected
+                                    </div>
+                                    <div>
+                                        {waterCollectedFormula}
+                                    </div>
+                                </div>
+                            }
                         />
                     </Skeleton>
                 </Card>
@@ -177,6 +216,43 @@ const Stats = () => {
                     debouncedSearch={debouncedSearch}
                     onCitySelect={handleCitySelect}
                     loading={loadingLocation || loadingSavings}
+                />
+            </div>
+            <div>
+                <Alert
+                    description={
+                        <div>
+                            <div className="mb-4">
+                                <span className="text-xl font-semibold">Data Sources</span>
+                            </div>
+                            <ul className="mb-2">
+                                <li>
+                                    Rainfall: <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open
+                                    Meteo</a>
+                                </li>
+                                <li>
+                                    Water Cost: <a href="https://www.nwl.co.uk/tariffsandcharges" target="_blank"
+                                                   rel="noreferrer">Northumbrian Living Water</a>
+                                </li>
+                            </ul>
+                            <div className="mt-4">
+                                <div className="mb-2">
+                                    <span className="text-xl font-semibold">Source Code</span>
+                                </div>
+                                <ul>
+                                    <li>
+                                        <a href="https://github.com/mubashirzamir/dreamcode" target="_blank"
+                                           rel="noreferrer">Frontend</a>
+                                    </li>
+                                    <li>
+                                        <a href="https://github.com/mubashirzamir/open-mateo-wrapper" target="_blank"
+                                           rel="noreferrer">Backend</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    }
+                    type="info"
                 />
             </div>
         </div>

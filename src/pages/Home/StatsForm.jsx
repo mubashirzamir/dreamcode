@@ -23,7 +23,7 @@ const StatsForm = ({
         <Card>
             <Form layout="vertical" form={form}>
                 {/* Roof Area Input */}
-                <Form.Item label="Roof Area">
+                <Form.Item label="Roof Area (Square Feet)">
                     <Input
                         type="number"
                         placeholder="Square Meters"
